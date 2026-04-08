@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/app-layout"
 import { Button } from "@/components/ui/button"
 import { notifications } from "@/lib/notifications"
 import { UserPlus } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
 
 const mockMembers = [
   { id: "m-1", name: "James Cooper", email: "jamescooper@work.com", role: "owner" },
@@ -31,14 +32,15 @@ export default function MembersPage() {
           <span className="text-foreground">Members</span>
         </p>
         {mockMembers.length === 0 ? (
-          <div className="rounded-xl border border-border/40 bg-card/95 p-6 text-center shadow-sm">
-            <p className="text-sm text-muted-foreground">No members yet.</p>
-            <div className="mt-4 flex justify-center">
+          <EmptyState
+            title="No members"
+            description="Invite someone to get started."
+            action={
               <Link href={`/organizations/${orgId}/invites`}>
                 <Button size="pill">Invite member</Button>
               </Link>
-            </div>
-          </div>
+            }
+          />
         ) : (
           mockMembers.map((member) => (
             <div

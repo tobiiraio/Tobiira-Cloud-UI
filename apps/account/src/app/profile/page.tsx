@@ -6,6 +6,7 @@ import { User, Camera, CheckCircle, XCircle, Loader2, Pencil, Trash2 } from "luc
 import { Button } from "@/components/ui/button"
 import { OTPButton } from "@/components/otp-button"
 import { AppLayout } from "@/components/app-layout"
+import { ErrorState } from "@/components/error-state"
 
 // Mock user data - replace with API call
 const mockUser = {
@@ -97,8 +98,8 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <AppLayout title="Profile">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Failed to load profile</p>
+        <div className="py-12">
+          <ErrorState title="Profile unavailable" description="Try again later." />
         </div>
       </AppLayout>
     )
