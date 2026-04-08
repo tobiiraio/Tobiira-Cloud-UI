@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
-import { notifications } from "@/lib/notifications"
 
 export default function AcceptInvitePage() {
   const router = useRouter()

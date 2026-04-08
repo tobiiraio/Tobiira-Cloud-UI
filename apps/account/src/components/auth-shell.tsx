@@ -37,7 +37,7 @@ export function AuthShell({ title, children, footer, showBack = false, onBack }:
           </div>
           <div className="relative">
             <div className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(50%_50%_at_50%_50%,hsl(var(--primary)/0.18),transparent_70%)] blur-2xl" />
-            <div className="rounded-2xl border border-border/60 bg-card/95 p-8 shadow-[0_30px_70px_-50px_hsl(var(--foreground)/0.7)] ring-1 ring-border/50 backdrop-blur animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="rounded-xl border border-border/40 bg-card/95 p-8 shadow-sm backdrop-blur animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="space-y-5">
               <div>
                 {showBack && onBack && (

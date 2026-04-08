@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
-import { notifications } from "@/lib/notifications"
 
 export default function CreateOrganizationPage() {
   const router = useRouter()
