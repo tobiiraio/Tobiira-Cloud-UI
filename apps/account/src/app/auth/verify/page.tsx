@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
 import { OTPInput } from "@/components/otp-input"
 import { notifications } from "@/lib/notifications"
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [code, setCode] = useState("")
@@ -67,5 +67,13 @@ export default function VerifyPage() {
         <OTPButton isLoading={isLoading} text="Verify" />
       </form>
     </AuthShell>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyContent />
+    </Suspense>
   )
 }

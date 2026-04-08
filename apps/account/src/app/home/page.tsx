@@ -1,9 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { Settings, User, ChevronRight } from "lucide-react"
+import { Settings, ChevronRight } from "lucide-react"
 import { AppLayout } from "@/components/app-layout"
 import { Button } from "@/components/ui/button"
+
+const mockOrganizations = [
+  { id: "org-1", name: "Acme Corporation", role: "owner" },
+  { id: "org-2", name: "Tech Solutions Ltd", role: "operator" },
+]
 
 export default function HomePage() {
   return (
@@ -18,7 +23,7 @@ export default function HomePage() {
       }
     >
       <div className="space-y-6">
-        <div className="rounded-[2rem] border border-border bg-card/95 p-6 shadow-xl shadow-slate-900/5">
+        <div className="rounded-xl border border-border/40 bg-card/95 p-6 shadow-sm">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="relative">
               <div className="h-28 w-28 rounded-full bg-gradient-to-br from-primary to-secondary p-1">
@@ -31,22 +36,26 @@ export default function HomePage() {
               </span>
             </div>
             <div>
-              <h2 className="text-2xl font-semibold">James Cooper</h2>
+              <h2 className="text-2xl font-medium">James Cooper</h2>
               <p className="text-sm text-muted-foreground">jamescooper@work.com</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-3">
-          <Link href="/organizations" className="block rounded-[1.75rem] border border-border bg-background/80 p-4 shadow-sm transition hover:border-primary">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium">Organisations</p>
-                <p className="text-sm text-muted-foreground">View your organization dashboard</p>
+          {mockOrganizations.map((org) => (
+            <Link key={org.id} href={`/organizations/${org.id}`}>
+              <div className="rounded-xl border border-border/40 bg-background/80 p-4 shadow-sm transition hover:border-primary">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">{org.name}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-[0.2em]">{org.role}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
       </div>
     </AppLayout>
