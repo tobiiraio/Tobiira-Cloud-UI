@@ -4,6 +4,7 @@ import { useParams } from "next/navigation"
 import { AppLayout } from "@/components/app-layout"
 import { Button } from "@/components/ui/button"
 import { notifications } from "@/lib/notifications"
+import { EmptyState } from "@/components/empty-state"
 
 const mockRequests = [
   { id: "jr-1", name: "Maya Clarke", email: "maya@work.com", message: "I would like to join." },
@@ -21,9 +22,7 @@ export default function JoinRequestsPage() {
     >
       <div className="space-y-4">
         {mockRequests.length === 0 ? (
-          <div className="rounded-xl border border-border/40 bg-card/95 p-6 text-center shadow-sm">
-            <p className="text-sm text-muted-foreground">No requests.</p>
-          </div>
+          <EmptyState title="No requests" description="Nothing to review." />
         ) : (
           mockRequests.map((request) => (
             <div

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Building2, ChevronRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AppLayout } from "@/components/app-layout"
+import { EmptyState } from "@/components/empty-state"
 
 const mockOrganizations = [
   { id: "org-1", name: "Acme Corporation", role: "owner" },
@@ -15,13 +16,17 @@ export default function OrganizationsPage() {
   return (
     <AppLayout title="Organizations">
       {mockOrganizations.length === 0 ? (
-        <div className="rounded-xl border border-border/40 bg-card/95 p-8 text-center">
-          <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-lg font-semibold">No organizations yet</h2>
-          <p className="text-sm text-muted-foreground mt-2 mb-6">Create one to continue.</p>
-          <Link href="/organizations/new">
-            <Button size="pill">Create organization</Button>
-          </Link>
+        <div className="space-y-4">
+          <Building2 className="mx-auto h-12 w-12 text-muted-foreground" />
+          <EmptyState
+            title="No organizations"
+            description="Create one to continue."
+            action={
+              <Link href="/organizations/new">
+                <Button size="pill">Create organization</Button>
+              </Link>
+            }
+          />
         </div>
       ) : (
         <div className="space-y-3">

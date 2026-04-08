@@ -19,9 +19,12 @@ export default function LogoutPage() {
           <span className="text-foreground">Log out</span>
         </p>
         <div className="rounded-xl border border-border/40 bg-card/95 p-6 shadow-sm">
-          <p className="text-sm text-muted-foreground">End session?</p>
-          <p className="mt-2 text-xl font-medium">You’ll return to sign in.</p>
+          <p className="text-sm text-muted-foreground">End session</p>
+          <p className="mt-2 text-xl font-medium">Return to sign in</p>
         </div>
+        {isLoading && (
+          <p className="text-xs text-muted-foreground text-center">Logging out…</p>
+        )}
         <OTPButton
           isLoading={isLoading}
           text="Log out"

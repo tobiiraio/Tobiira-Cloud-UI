@@ -11,6 +11,8 @@ export default function OrganizationSettingsPage() {
   const [timezone, setTimezone] = useState("Africa/Kampala")
   const [currency, setCurrency] = useState("UGX")
   const [locale, setLocale] = useState("en")
+  const [propertyTypes, setPropertyTypes] = useState("residential")
+  const [rentDay, setRentDay] = useState("1")
   const [verticalConfig, setVerticalConfig] = useState("{\n  \"persta\": {\n    \"propertyTypes\": [\"residential\"],\n    \"rentCollectionDay\": 1\n  }\n}")
   const [isSaving, setIsSaving] = useState(false)
 
@@ -95,14 +97,52 @@ export default function OrganizationSettingsPage() {
             </div>
           </summary>
           <div className="mt-4">
-            <label className="block text-sm font-medium text-foreground">
-              <span className="sr-only">Vertical configuration</span>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-foreground">
+                <span className="text-xs text-muted-foreground">Property types</span>
+                <input
+                  value={propertyTypes}
+                  onChange={(event) => {
+                    const nextValue = event.target.value
+                    setPropertyTypes(nextValue)
+                    const values = nextValue.split(",").map((item) => item.trim()).filter(Boolean)
+                    const rentValue = Number.parseInt(rentDay, 10) || 1
+                    setVerticalConfig(
+                      JSON.stringify({ persta: { propertyTypes: values, rentCollectionDay: rentValue } }, null, 2)
+                    )
+                  }}
+                  placeholder="residential, commercial"
+                  className="mt-2 w-full rounded-xl border border-input/70 bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </label>
+              <label className="block text-sm font-medium text-foreground">
+                <span className="text-xs text-muted-foreground">Rent day</span>
+                <input
+                  value={rentDay}
+                  onChange={(event) => {
+                    const nextValue = event.target.value
+                    setRentDay(nextValue)
+                    const values = propertyTypes.split(",").map((item) => item.trim()).filter(Boolean)
+                    const rentValue = Number.parseInt(nextValue, 10) || 1
+                    setVerticalConfig(
+                      JSON.stringify({ persta: { propertyTypes: values, rentCollectionDay: rentValue } }, null, 2)
+                    )
+                  }}
+                  placeholder="1"
+                  className="mt-2 w-full rounded-xl border border-input/70 bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </label>
+            </div>
+            <details className="mt-4 rounded-xl border border-border/40 bg-background/80 p-4">
+              <summary className="cursor-pointer list-none text-sm text-muted-foreground">
+                Advanced JSON
+              </summary>
               <textarea
                 value={verticalConfig}
                 onChange={(event) => setVerticalConfig(event.target.value)}
-                className="mt-2 min-h-[180px] w-full rounded-2xl border border-input/70 bg-background px-4 py-3 text-sm font-mono text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="mt-3 min-h-[180px] w-full rounded-2xl border border-input/70 bg-background px-4 py-3 text-sm font-mono text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
-            </label>
+            </details>
           </div>
         </details>
 

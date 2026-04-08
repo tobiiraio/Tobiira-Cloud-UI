@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/app-layout"
 import { OTPButton } from "@/components/otp-button"
 import { Button } from "@/components/ui/button"
 import { notifications } from "@/lib/notifications"
+import { EmptyState } from "@/components/empty-state"
 
 const mockInvites = [
   { id: "inv-1", email: "sam@work.com", role: "operator" },
@@ -56,9 +57,7 @@ export default function InvitesPage() {
 
         <div className="space-y-3">
           {mockInvites.length === 0 ? (
-            <div className="rounded-xl border border-border/40 bg-card/95 p-6 text-center shadow-sm">
-              <p className="text-sm text-muted-foreground">No invites yet.</p>
-            </div>
+            <EmptyState title="No invites" description="Send the first invite." />
           ) : (
             mockInvites.map((invite) => (
               <div
