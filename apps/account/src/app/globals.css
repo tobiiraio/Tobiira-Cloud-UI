@@ -77,6 +77,10 @@
     min-height: 100vh;
     margin: 0;
     background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(1200px 520px at 50% -160px, hsl(var(--accent) / 0.45), transparent 60%),
+      radial-gradient(900px 520px at 8% 0%, hsl(var(--muted) / 0.5), transparent 55%);
+    background-attachment: fixed;
     color: hsl(var(--foreground));
     transition: background-color 0.2s ease, color 0.2s ease;
   }

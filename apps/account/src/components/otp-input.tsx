@@ -103,7 +103,7 @@ export function OTPInput({ value, onChange, length, disabled = false }: OTPInput
           disabled={disabled}
           className={`
             w-12 h-12 text-center text-lg font-semibold
-            rounded-lg border-2 bg-background
+            rounded-xl border-2 bg-background shadow-[0_1px_2px_0_hsl(var(--foreground)/0.08)]
             transition-all duration-200
             ${focusedIndex === index
               ? "border-primary ring-2 ring-primary/20"
