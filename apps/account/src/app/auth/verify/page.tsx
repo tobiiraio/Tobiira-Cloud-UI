@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
 import { OTPInput } from "@/components/otp-input"
+import { notifications } from "@/lib/notifications"
 
 export default function VerifyPage() {
   const router = useRouter()
@@ -43,7 +44,12 @@ export default function VerifyPage() {
             // Simulate API call
             setTimeout(() => {
               setIsLoading(false)
-              router.push(nextRoute)
+              if (nextRoute === "/home") {
+                router.push("/home?toast=auth.otp.verified")
+              } else {
+                notifications.authOtpVerified()
+                router.push(nextRoute)
+              }
             }, 2000)
           }
         }}

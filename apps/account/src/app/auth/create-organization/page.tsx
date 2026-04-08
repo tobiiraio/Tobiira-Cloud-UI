@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
+import { notifications } from "@/lib/notifications"
 
 export default function CreateOrganizationPage() {
   const router = useRouter()
@@ -29,7 +30,7 @@ export default function CreateOrganizationPage() {
           // Simulate API call
           setTimeout(() => {
             setIsLoading(false)
-            router.push("/home")
+            router.push("/home?toast=org.created")
           }, 2000)
         }}
       >

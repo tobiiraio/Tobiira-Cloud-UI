@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { OTPButton } from "@/components/otp-button"
 import { AuthShell } from "@/components/auth-shell"
+import { notifications } from "@/lib/notifications"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -33,6 +34,7 @@ export default function LoginPage() {
           // Simulate API call
           setTimeout(() => {
             setIsLoading(false)
+            notifications.authOtpSent()
             const nextQuery = nextParams.toString()
             router.push(nextQuery ? `/auth/verify?${nextQuery}` : "/auth/verify")
           }, 2000)
