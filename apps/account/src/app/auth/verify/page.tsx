@@ -1,73 +1,79 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
 import { OTPInput } from "@/components/otp-input"
+import { notifications } from "@/lib/notifications"
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [code, setCode] = useState("")
-  const [verified, setVerified] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleBack = () => {
-    router.push("/auth/login")
-  }
+  const inviteToken = searchParams.get("invite") ?? ""
+  const isNew = searchParams.get("new") === "1"
+  const backParams = new URLSearchParams()
+  if (inviteToken) backParams.set("invite", inviteToken)
+  if (isNew) backParams.set("new", "1")
+  const backRoute = backParams.toString()
+    ? `/auth/login?${backParams.toString()}`
+    : "/auth/login"
+  const nextRoute = inviteToken
+    ? `/auth/accept-invite?invite=${encodeURIComponent(inviteToken)}`
+    : isNew
+      ? "/auth/create-organization"
+      : "/home"
+
+  const title = isNew ? "Verify email" : "Verify code"
 
   return (
     <AuthShell
-      title="Verify code"
-      description="Enter the one-time code sent to your email."
-      footer={
-        <p>
-          Didn’t receive a code? <Link href="/auth/login" className="text-primary underline">Send again</Link>
-        </p>
-      }
+      title={title}
       showBack={true}
-      onBack={handleBack}
+      onBack={() => router.push(backRoute)}
     >
-      {verified ? (
-        <div className="rounded-lg border border-input bg-background/80 p-5 text-sm text-muted-foreground">
-          <p className="font-medium text-foreground">Verification complete</p>
-          <p className="mt-2">Your sign-in is confirmed. You can now continue to the account shell.</p>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (code.length === 6) {
+            setIsLoading(true)
+            // Simulate API call
+            setTimeout(() => {
+              setIsLoading(false)
+              if (nextRoute === "/home") {
+                router.push("/home?toast=auth.otp.verified")
+              } else {
+                notifications.authOtpVerified()
+                router.push(nextRoute)
+              }
+            }, 2000)
+          }
+        }}
+      >
+        <label className="block text-sm font-medium text-foreground">
+          <span className="sr-only">One-time code</span>
           <div className="mt-4">
-            <Link href="/">
-              <OTPButton text="Go to account" />
-            </Link>
+            <OTPInput
+              value={code}
+              onChange={setCode}
+              length={6}
+            />
           </div>
-        </div>
-      ) : (
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (code.length === 6) {
-              setIsLoading(true)
-              // Simulate API call
-              setTimeout(() => {
-                setIsLoading(false)
-                setVerified(true)
-              }, 2000)
-            }
-          }}
-        >
-          <label className="block text-sm font-medium text-foreground">
-            One-time code
-            <div className="mt-4">
-              <OTPInput
-                value={code}
-                onChange={setCode}
-                length={6}
-              />
-            </div>
-          </label>
-          <OTPButton isLoading={isLoading} text="Verify" />
-        </form>
-      )}
+        </label>
+        <OTPButton isLoading={isLoading} text="Verify" />
+      </form>
     </AuthShell>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyContent />
+    </Suspense>
   )
 }

@@ -17,7 +17,7 @@ export function Logo() {
 
   return (
     <div className="inline-block">
-      <span className="text-2xl font-bold tracking-tight">
+      <span className="text-2xl font-medium tracking-wide">
         <span className={currentTheme === "dark" ? "text-white" : "text-slate-900"}>
           Tobiira
         </span>

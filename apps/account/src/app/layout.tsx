@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppToaster } from "@/components/toaster";
+import { RouteToasts } from "@/components/route-toasts";
+import { Suspense } from "react";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -38,6 +41,10 @@ export default function RootLayout({
           storageKey="tobiira-theme"
         >
           {children}
+          <Suspense fallback={null}>
+            <RouteToasts />
+          </Suspense>
+          <AppToaster />
         </ThemeProvider>
       </body>
     </html>
