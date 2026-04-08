@@ -6,8 +6,6 @@ import { OTPButton } from "@/components/otp-button"
 import { notifications } from "@/lib/notifications"
 
 export default function OrganizationSettingsPage() {
-  const params = useParams()
-  const orgId = typeof params.id === "string" ? params.id : params.id?.[0] ?? "org"
   const [name, setName] = useState("Acme Corporation")
   const [address, setAddress] = useState("")
   const [timezone, setTimezone] = useState("Africa/Kampala")
