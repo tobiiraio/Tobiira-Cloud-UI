@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { AppLayout } from "@/components/app-layout"
 import { OTPButton } from "@/components/otp-button"
+import { useLogoutMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
 export default function LogoutPage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const [logout, { isLoading }] = useLogoutMutation()
 
   return (
     <AppLayout title="Log out" backHref="/home" backLabel="Home">
@@ -28,13 +30,15 @@ export default function LogoutPage() {
         <OTPButton
           isLoading={isLoading}
           text="Log out"
-          onClick={(event) => {
+          onClick={async (event) => {
             event.preventDefault()
-            setIsLoading(true)
-            setTimeout(() => {
-              setIsLoading(false)
+            try {
+              await logout().unwrap()
               router.push("/auth/login?toast=auth.logged.out")
-            }, 1200)
+            } catch (error) {
+              const message = getErrorMessage(error) ?? "Failed to log out"
+              toast.error(message)
+            }
           }}
         />
       </div>

@@ -5,15 +5,16 @@ import { AppLayout } from "@/components/app-layout"
 import { Button } from "@/components/ui/button"
 import { notifications } from "@/lib/notifications"
 import { EmptyState } from "@/components/empty-state"
-
-const mockRequests = [
-  { id: "jr-1", name: "Maya Clarke", email: "maya@work.com", message: "I would like to join." },
-  { id: "jr-2", name: "Owen Grant", email: "owen@work.com", message: "Please approve access." },
-]
+import { ErrorState } from "@/components/error-state"
+import { useGetJoinRequestsQuery, useResolveJoinRequestMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
 export default function JoinRequestsPage() {
   const params = useParams()
   const orgId = typeof params.id === "string" ? params.id : params.id?.[0] ?? "org"
+  const { data: requests = [], isLoading, isError } = useGetJoinRequestsQuery(orgId)
+  const [resolveJoinRequest] = useResolveJoinRequestMutation()
 
   return (
     <AppLayout
@@ -21,10 +22,12 @@ export default function JoinRequestsPage() {
       backToHome
     >
       <div className="space-y-4">
-        {mockRequests.length === 0 ? (
+        {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+        {isError && <ErrorState title="Requests unavailable" description="Try again later." />}
+        {!isLoading && !isError && requests.length === 0 ? (
           <EmptyState title="No requests" description="Nothing to review." />
         ) : (
-          mockRequests.map((request) => (
+          requests.map((request) => (
             <div
               key={request.id}
               className="rounded-xl border border-border/40 bg-card/95 p-4 shadow-sm"
@@ -40,7 +43,14 @@ export default function JoinRequestsPage() {
                 <Button
                   size="pill"
                   className="h-9 px-4"
-                  onClick={() => notifications.joinRequestResolved()}
+                  onClick={async () => {
+                    try {
+                      await resolveJoinRequest({ orgId, requestId: request.id, body: { status: "approved" } }).unwrap()
+                      notifications.joinRequestResolved()
+                    } catch (error) {
+                      toast.error(getErrorMessage(error) ?? "Failed to approve request")
+                    }
+                  }}
                 >
                   Approve
                 </Button>
@@ -48,7 +58,14 @@ export default function JoinRequestsPage() {
                   variant="ghost"
                   size="pill"
                   className="h-9 px-4 text-red-400 hover:text-red-500"
-                  onClick={() => notifications.joinRequestResolved()}
+                  onClick={async () => {
+                    try {
+                      await resolveJoinRequest({ orgId, requestId: request.id, body: { status: "rejected" } }).unwrap()
+                      notifications.joinRequestResolved()
+                    } catch (error) {
+                      toast.error(getErrorMessage(error) ?? "Failed to reject request")
+                    }
+                  }}
                 >
                   Reject
                 </Button>

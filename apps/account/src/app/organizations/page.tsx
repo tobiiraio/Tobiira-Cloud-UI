@@ -1,21 +1,21 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { Building2, ChevronRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AppLayout } from "@/components/app-layout"
 import { EmptyState } from "@/components/empty-state"
-
-const mockOrganizations = [
-  { id: "org-1", name: "Acme Corporation", role: "owner" },
-  { id: "org-2", name: "Tech Solutions Ltd", role: "operator" },
-]
+import { ErrorState } from "@/components/error-state"
+import { useGetOrganizationsQuery } from "@/lib/api"
 
 export default function OrganizationsPage() {
+  const { data: organizations = [], isLoading, isError } = useGetOrganizationsQuery()
+
   return (
     <AppLayout title="Organizations">
-      {mockOrganizations.length === 0 ? (
+      {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {isError && <ErrorState title="Organizations unavailable" description="Try again later." />}
+      {!isLoading && !isError && organizations.length === 0 ? (
         <div className="space-y-4">
           <Building2 className="mx-auto h-12 w-12 text-muted-foreground" />
           <EmptyState
@@ -30,7 +30,7 @@ export default function OrganizationsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {mockOrganizations.map((org) => (
+          {organizations.map((org) => (
             <Link key={org.id} href={`/organizations/${org.id}`}>
               <div className="rounded-xl border border-border/40 bg-card/95 p-4 flex items-center justify-between hover:bg-card transition-colors">
                 <div>

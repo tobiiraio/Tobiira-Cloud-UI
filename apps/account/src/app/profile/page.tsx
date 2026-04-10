@@ -2,88 +2,64 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { User, Camera, CheckCircle, XCircle, Loader2, Pencil, Trash2 } from "lucide-react"
+import { User, Loader2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { OTPButton } from "@/components/otp-button"
 import { AppLayout } from "@/components/app-layout"
 import { ErrorState } from "@/components/error-state"
+import { useGetProfileQuery, useUpdateProfileMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
-// Mock user data - replace with API call
-const mockUser = {
-  id: "user-123",
-  email: "john.doe@example.com",
-  firstName: "John",
-  lastName: "Doe",
-  username: "john.doe",
-  avatarUrl: null as string | null,
-  dateOfBirth: "1990-01-01",
-  phone: "+256700000000",
-  isEmailVerified: true,
-  isPhoneVerified: false,
-  systemRole: "user" as const,
-  createdAt: "2024-01-01T00:00:00Z",
-  updatedAt: "2024-01-01T00:00:00Z"
+type FormData = {
+  firstName: string
+  lastName: string
+  avatarUrl: string
+  dateOfBirth: string
+  phone: string
 }
 
-type UserProfile = typeof mockUser
+function toForm(user: { firstName: string | null; lastName: string | null; avatarUrl: string | null; dateOfBirth: string; phone: string }): FormData {
+  return {
+    firstName: user.firstName ?? "",
+    lastName: user.lastName ?? "",
+    avatarUrl: user.avatarUrl ?? "",
+    dateOfBirth: user.dateOfBirth ?? "",
+    phone: user.phone ?? "",
+  }
+}
+
+function toPatch(form: FormData) {
+  return {
+    firstName: form.firstName || undefined,
+    lastName: form.lastName || undefined,
+    avatarUrl: form.avatarUrl || undefined,
+    dateOfBirth: form.dateOfBirth || undefined,
+    phone: form.phone || undefined,
+  }
+}
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    username: "",
-    avatarUrl: "",
-    dateOfBirth: "",
-    phone: ""
-  })
+  const { data: user, isLoading, isError } = useGetProfileQuery()
+  const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation()
+  const [formData, setFormData] = useState<FormData>({ firstName: "", lastName: "", avatarUrl: "", dateOfBirth: "", phone: "" })
 
-  // Load user profile
   useEffect(() => {
-    const loadProfile = async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setUser(mockUser)
-      setFormData({
-        firstName: mockUser.firstName || "",
-        lastName: mockUser.lastName || "",
-        username: mockUser.username || "",
-        avatarUrl: mockUser.avatarUrl || "",
-        dateOfBirth: mockUser.dateOfBirth || "",
-        phone: mockUser.phone || ""
-      })
-      setIsLoading(false)
-    }
-
-    loadProfile()
-  }, [])
+    if (user) setFormData(toForm(user))
+  }, [user])
 
   const handleSave = async () => {
     if (!user) return
-
-    setIsSaving(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      // Update local state
-      setUser({
-        ...user,
-        ...formData,
-        updatedAt: new Date().toISOString()
-      })
+      await updateProfile(toPatch(formData)).unwrap()
+      toast.success("Profile updated")
     } catch (error) {
-      console.error("Failed to update profile:", error)
-    } finally {
-      setIsSaving(false)
+      toast.error(getErrorMessage(error) ?? "Failed to update profile")
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setFormData(prev => ({ ...prev, [field]: e.target.value }))
 
   if (isLoading) {
     return (
@@ -95,7 +71,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!user) {
+  if (isError || !user) {
     return (
       <AppLayout title="Profile">
         <div className="py-12">
@@ -105,14 +81,9 @@ export default function ProfilePage() {
     )
   }
 
-  const hasChanges = JSON.stringify({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    username: user.username,
-    avatarUrl: user.avatarUrl,
-    dateOfBirth: user.dateOfBirth,
-    phone: user.phone
-  }) !== JSON.stringify(formData)
+  const hasChanges = JSON.stringify(toForm(user)) !== JSON.stringify(formData)
+
+  const inputClass = "mt-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
 
   return (
     <AppLayout title="Edit your profile" backHref="/home" backLabel="Home">
@@ -123,11 +94,9 @@ export default function ProfilePage() {
             <span className="px-2">/</span>
             <span className="text-foreground">Profile</span>
           </p>
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Profile</p>
-              <h1 className="text-2xl font-medium">Edit profile</h1>
-            </div>
+          <div className="mb-6">
+            <p className="text-sm text-muted-foreground">Profile</p>
+            <h1 className="text-2xl font-medium">Edit profile</h1>
           </div>
 
           <div className="space-y-4">
@@ -140,34 +109,16 @@ export default function ProfilePage() {
               </summary>
               <div className="mt-4 grid gap-4">
                 <label className="block">
-                  <span className="text-sm text-muted-foreground">Name</span>
-                  <input
-                    type="text"
-                    value={`${formData.firstName} ${formData.lastName}`.trim()}
-                    onChange={(e) => {
-                      const [firstName, ...rest] = e.target.value.split(" ")
-                      handleInputChange("firstName", firstName)
-                      handleInputChange("lastName", rest.join(" "))
-                    }}
-                    className="mt-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="Diana Larussa"
-                  />
+                  <span className="text-sm text-muted-foreground">First name</span>
+                  <input type="text" value={formData.firstName} onChange={set("firstName")} placeholder="First name" className={inputClass} />
                 </label>
-
                 <label className="block">
-                  <span className="text-sm text-muted-foreground">Username</span>
-                  <div className="mt-2 flex items-center rounded-xl border border-input bg-background px-4 py-3">
-                    <input
-                      type="text"
-                      value={formData.username}
-                      onChange={(e) => handleInputChange("username", e.target.value)}
-                      className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                      placeholder="DianaLarussa"
-                    />
-                    <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full p-0">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <span className="text-sm text-muted-foreground">Last name</span>
+                  <input type="text" value={formData.lastName} onChange={set("lastName")} placeholder="Last name" className={inputClass} />
+                </label>
+                <label className="block">
+                  <span className="text-sm text-muted-foreground">Date of birth</span>
+                  <input type="date" value={formData.dateOfBirth} onChange={set("dateOfBirth")} className={inputClass} />
                 </label>
               </div>
             </details>
@@ -182,21 +133,12 @@ export default function ProfilePage() {
               <div className="mt-4 space-y-3">
                 <label className="block">
                   <span className="text-sm text-muted-foreground">Phone</span>
-                  <div className="mt-2 flex items-center justify-between rounded-xl border border-input bg-background px-4 py-3">
-                    <span className="text-sm text-foreground">{formData.phone || "+256700000000"}</span>
-                    <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full p-0">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <input type="tel" value={formData.phone} onChange={set("phone")} placeholder="+256700000000" className={inputClass} />
                 </label>
-
                 <label className="block">
                   <span className="text-sm text-muted-foreground">Email</span>
-                  <div className="mt-2 flex items-center justify-between rounded-xl border border-input bg-background px-4 py-3">
-                    <span className="text-sm text-foreground">{user.email}</span>
-                    <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full p-0">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                  <div className="mt-2 rounded-xl border border-input bg-background px-4 py-3 text-sm text-muted-foreground">
+                    {user.email}
                   </div>
                 </label>
               </div>
@@ -209,31 +151,29 @@ export default function ProfilePage() {
                   <span className="text-xs text-muted-foreground">View</span>
                 </div>
               </summary>
-              <div className="mt-4 rounded-xl border border-dashed border-border/60 bg-card/95 p-4 text-center">
-                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted text-foreground">
+              <div className="mt-4 space-y-4">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted text-foreground">
                   {formData.avatarUrl ? (
                     <img src={formData.avatarUrl} alt="Avatar" className="h-full w-full rounded-full object-cover" />
                   ) : (
                     <User className="h-8 w-8" />
                   )}
                 </div>
-                <Button
-                  variant="secondary"
-                  size="pill"
-                  className="mx-auto mb-3"
-                  onClick={() => alert("Add a new photo")}
-                >
-                  Add photo
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="pill"
-                  className="mx-auto text-red-400"
-                  onClick={() => setFormData(prev => ({ ...prev, avatarUrl: "" }))}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </Button>
+                <label className="block">
+                  <span className="text-sm text-muted-foreground">Avatar URL</span>
+                  <input type="url" value={formData.avatarUrl} onChange={set("avatarUrl")} placeholder="https://example.com/avatar.jpg" className={inputClass} />
+                </label>
+                {formData.avatarUrl && (
+                  <Button
+                    variant="ghost"
+                    size="pill"
+                    className="text-red-400"
+                    onClick={() => setFormData(prev => ({ ...prev, avatarUrl: "" }))}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove
+                  </Button>
+                )}
               </div>
             </details>
           </div>

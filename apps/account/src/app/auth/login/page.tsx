@@ -6,10 +6,13 @@ import Link from "next/link"
 import { OTPButton } from "@/components/otp-button"
 import { AuthShell } from "@/components/auth-shell"
 import { notifications } from "@/lib/notifications"
+import { useRequestOtpMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
 function LoginContent() {
   const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [requestOtp, { isLoading }] = useRequestOtpMutation()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -28,16 +31,18 @@ function LoginContent() {
     >
       <form
         className="space-y-4"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
-          setIsLoading(true)
-          // Simulate API call
-          setTimeout(() => {
-            setIsLoading(false)
+          try {
+            await requestOtp({ email }).unwrap()
             notifications.authOtpSent()
-            const nextQuery = nextParams.toString()
-            router.push(nextQuery ? `/auth/verify?${nextQuery}` : "/auth/verify")
-          }, 2000)
+            const nextQuery = new URLSearchParams(nextParams)
+            nextQuery.set("email", email)
+            router.push(`/auth/verify?${nextQuery.toString()}`)
+          } catch (error) {
+            const message = getErrorMessage(error) ?? "Failed to send code"
+            toast.error(message)
+          }
         }}
       >
         <label className="block text-sm font-medium text-foreground">

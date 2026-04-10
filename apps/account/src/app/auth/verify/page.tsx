@@ -6,18 +6,23 @@ import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
 import { OTPInput } from "@/components/otp-input"
 import { notifications } from "@/lib/notifications"
+import { useVerifyOtpMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
 function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [code, setCode] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation()
 
   const inviteToken = searchParams.get("invite") ?? ""
   const isNew = searchParams.get("new") === "1"
+  const email = searchParams.get("email") ?? ""
   const backParams = new URLSearchParams()
   if (inviteToken) backParams.set("invite", inviteToken)
   if (isNew) backParams.set("new", "1")
+  if (email) backParams.set("email", email)
   const backRoute = backParams.toString()
     ? `/auth/login?${backParams.toString()}`
     : "/auth/login"
@@ -37,20 +42,24 @@ function VerifyContent() {
     >
       <form
         className="space-y-4"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
-          if (code.length === 6) {
-            setIsLoading(true)
-            // Simulate API call
-            setTimeout(() => {
-              setIsLoading(false)
-              if (nextRoute === "/home") {
-                router.push("/home?toast=auth.otp.verified")
-              } else {
-                notifications.authOtpVerified()
-                router.push(nextRoute)
-              }
-            }, 2000)
+          if (code.length !== 6) return
+          if (!email) {
+            toast.error("Missing email address")
+            return
+          }
+          try {
+            await verifyOtp({ email, code }).unwrap()
+            if (nextRoute === "/home") {
+              router.push("/home?toast=auth.otp.verified")
+            } else {
+              notifications.authOtpVerified()
+              router.push(nextRoute)
+            }
+          } catch (error) {
+            const message = getErrorMessage(error) ?? "Failed to verify code"
+            toast.error(message)
           }
         }}
       >

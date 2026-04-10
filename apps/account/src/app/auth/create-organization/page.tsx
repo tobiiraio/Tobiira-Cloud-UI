@@ -4,11 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
+import { useCreateOrganizationMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
 export default function CreateOrganizationPage() {
   const router = useRouter()
   const [name, setName] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [createOrganization, { isLoading }] = useCreateOrganizationMutation()
 
   const handleBack = () => {
     router.push("/auth/login?new=1")
@@ -22,15 +25,15 @@ export default function CreateOrganizationPage() {
     >
       <form
         className="space-y-4"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
           if (!name.trim()) return
-          setIsLoading(true)
-          // Simulate API call
-          setTimeout(() => {
-            setIsLoading(false)
+          try {
+            await createOrganization({ name }).unwrap()
             router.push("/home?toast=org.created")
-          }, 2000)
+          } catch (error) {
+            toast.error(getErrorMessage(error) ?? "Failed to create organization")
+          }
         }}
       >
         <label className="block text-sm font-medium text-foreground">

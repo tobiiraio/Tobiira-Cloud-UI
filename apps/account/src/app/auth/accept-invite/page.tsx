@@ -4,12 +4,15 @@ import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AuthShell } from "@/components/auth-shell"
 import { OTPButton } from "@/components/otp-button"
+import { useAcceptInviteMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
 function AcceptInviteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isLoading, setIsLoading] = useState(false)
   const [token, setToken] = useState(searchParams.get("invite") ?? "")
+  const [acceptInvite, { isLoading }] = useAcceptInviteMutation()
 
   const backRoute = token
     ? `/auth/login?invite=${encodeURIComponent(token)}`
@@ -23,15 +26,16 @@ function AcceptInviteContent() {
     >
       <form
         className="space-y-4"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
           if (!token.trim()) return
-          setIsLoading(true)
-          // Simulate API call
-          setTimeout(() => {
-            setIsLoading(false)
+          try {
+            await acceptInvite({ token }).unwrap()
             router.push("/home?toast=auth.invite.accepted")
-          }, 2000)
+          } catch (error) {
+            const message = getErrorMessage(error) ?? "Failed to accept invite"
+            toast.error(message)
+          }
         }}
       >
         <label className="block text-sm font-medium text-foreground">

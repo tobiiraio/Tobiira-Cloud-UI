@@ -1,13 +1,16 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import Link from "next/link"
 import { useParams, usePathname } from "next/navigation"
 import { Plus, Building2, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAppDispatch, useAppSelector } from "@/lib/hooks"
+import { setFabOpen } from "@/lib/slices/ui-slice"
 
 export function GlobalFab() {
-  const [open, setOpen] = useState(false)
+  const dispatch = useAppDispatch()
+  const open = useAppSelector((state) => state.ui.isFabOpen)
   const pathname = usePathname()
   const params = useParams()
 
@@ -24,13 +27,13 @@ export function GlobalFab() {
     <div className="fixed bottom-20 right-5 z-50 flex flex-col items-end gap-3">
       {open && (
         <div className="flex flex-col items-end gap-2">
-          <Link href="/organizations/new" onClick={() => setOpen(false)}>
+          <Link href="/organizations/new" onClick={() => dispatch(setFabOpen(false))}>
             <Button size="pill" className="gap-2 shadow-lg">
               <Building2 className="h-4 w-4" />
               New organization
             </Button>
           </Link>
-          <Link href={inviteHref} onClick={() => setOpen(false)}>
+          <Link href={inviteHref} onClick={() => dispatch(setFabOpen(false))}>
             <Button variant="secondary" size="pill" className="gap-2 shadow-lg">
               <UserPlus className="h-4 w-4" />
               Invite member
@@ -42,7 +45,7 @@ export function GlobalFab() {
         size="pill"
         className="h-12 w-12 rounded-full p-0 shadow-lg"
         aria-label="Create"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => dispatch(setFabOpen(!open))}
       >
         <Plus className={`h-5 w-5 transition ${open ? "rotate-45" : ""}`} />
       </Button>

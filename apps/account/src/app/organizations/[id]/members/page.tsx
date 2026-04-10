@@ -7,16 +7,19 @@ import { Button } from "@/components/ui/button"
 import { notifications } from "@/lib/notifications"
 import { UserPlus } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
-
-const mockMembers = [
-  { id: "m-1", name: "James Cooper", email: "jamescooper@work.com", role: "owner" },
-  { id: "m-2", name: "Leah Morgan", email: "leah@work.com", role: "operator" },
-  { id: "m-3", name: "Daniel Reed", email: "daniel@work.com", role: "occupant" },
-]
+import { ErrorState } from "@/components/error-state"
+import { useGetMembersQuery, useGetOrganizationQuery, useRemoveMemberMutation, useUpdateMemberRoleMutation } from "@/lib/api"
+import { getErrorMessage } from "@/lib/api/rtk-error"
+import { toast } from "sonner"
 
 export default function MembersPage() {
   const params = useParams()
   const orgId = typeof params.id === "string" ? params.id : params.id?.[0] ?? "org"
+  const { data: members = [], isLoading, isError } = useGetMembersQuery(orgId)
+  const { data: organization } = useGetOrganizationQuery(orgId)
+  const [updateMemberRole] = useUpdateMemberRoleMutation()
+  const [removeMember] = useRemoveMemberMutation()
+  const isOwner = organization?.role === "owner"
 
   return (
     <AppLayout
@@ -31,7 +34,9 @@ export default function MembersPage() {
           <span className="px-2">/</span>
           <span className="text-foreground">Members</span>
         </p>
-        {mockMembers.length === 0 ? (
+        {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+        {isError && <ErrorState title="Members unavailable" description="Try again later." />}
+        {!isLoading && !isError && members.length === 0 ? (
           <EmptyState
             title="No members"
             description="Invite someone to get started."
@@ -42,7 +47,7 @@ export default function MembersPage() {
             }
           />
         ) : (
-          mockMembers.map((member) => (
+          members.map((member) => (
             <div
               key={member.id}
               className="rounded-xl border border-border/40 bg-card/95 p-4 shadow-sm"
@@ -56,24 +61,42 @@ export default function MembersPage() {
                   {member.role}
                 </span>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  size="pill"
-                  className="h-9 px-4"
-                  onClick={() => notifications.memberRoleUpdated()}
-                >
-                  Change role
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="pill"
-                  className="h-9 px-4 text-red-400 hover:text-red-500"
-                  onClick={() => notifications.memberRemoved()}
-                >
-                  Remove
-                </Button>
-              </div>
+              {isOwner && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <select
+                    defaultValue={member.role}
+                    className="rounded-full border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none"
+                    onChange={async (e) => {
+                      const role = e.target.value as "owner" | "operator" | "occupant"
+                      try {
+                        await updateMemberRole({ orgId, userId: member.id, patch: { role } }).unwrap()
+                        notifications.memberRoleUpdated()
+                      } catch (error) {
+                        toast.error(getErrorMessage(error) ?? "Failed to update role")
+                      }
+                    }}
+                  >
+                    <option value="owner">Owner</option>
+                    <option value="operator">Operator</option>
+                    <option value="occupant">Occupant</option>
+                  </select>
+                  <Button
+                    variant="ghost"
+                    size="pill"
+                    className="h-9 px-4 text-red-400 hover:text-red-500"
+                    onClick={async () => {
+                      try {
+                        await removeMember({ orgId, userId: member.id }).unwrap()
+                        notifications.memberRemoved()
+                      } catch (error) {
+                        toast.error(getErrorMessage(error) ?? "Failed to remove member")
+                      }
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
             </div>
           ))
         )}
